@@ -1,0 +1,10 @@
+.gradle/
+build/
+app/build/
+.idea/
+*.iml
+app-output/
+.git/
+local.properties
+.env
+docker/

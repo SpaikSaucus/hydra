@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hydra</string>
+
+    <!-- Navegación -->
+    <string name="nav_today">Hoy</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Inicio -->
+    <string name="today_title">Hoy</string>
+    <string name="goal_progress">%1$s de %2$s</string>
+    <string name="remaining_left">faltan %1$s</string>
+    <string name="goal_reached">¡Meta cumplida! 🎉</string>
+    <string name="next_reminder">Próximo vaso cerca de las %1$s</string>
+    <string name="no_reminder">Recordatorios desactivados</string>
+    <string name="add_water">Agregar agua</string>
+    <string name="log_amount">Registrar %1$s</string>
+    <string name="custom_amount">Cantidad personalizada</string>
+    <string name="cancel">Cancelar</string>
+    <string name="save">Guardar</string>
+    <string name="undo">Deshacer</string>
+    <string name="logged_snackbar">Registraste %1$s</string>
+
+    <!-- Modo calor + advertencias -->
+    <string name="heat_mode">Modo calor</string>
+    <string name="heat_mode_summer_hint">Sugerido: es verano en tu zona</string>
+    <string name="heat_mode_winter_hint">Sugerido: es invierno en tu zona</string>
+    <string name="heat_mode_off_warning">Inferimos verano en tu zona. Con el modo calor apagado, tu meta podría quedar baja en días calurosos. No medimos la temperatura real: ajustá según cómo te sientas.</string>
+    <string name="heat_mode_on_info">Activaste el modo calor pero inferimos invierno. Tu meta sube a 40 ml/kg. Está bien si entrenás o hace calor; si no, podés volver al modo normal.</string>
+    <string name="redistribution_behind">Vas un poco atrasado: apuntá a unos %1$s para las %2$s.</string>
+    <string name="redistribution_cannot_fit">Lo que falta (%1$s) no entra antes del corte nocturno sin pasar ~1 L/h. Tomá lo que puedas; seguí mañana.</string>
+    <string name="per_hour_cap_warning">Eso supera ~1 L/h. Repartilo para cuidar tus riñones.</string>
+
+    <!-- Ajustes -->
+    <string name="settings_title">Ajustes</string>
+    <string name="section_profile">Perfil</string>
+    <string name="weight">Peso</string>
+    <string name="units">Unidades</string>
+    <string name="unit_metric">Métrico (kg, ml)</string>
+    <string name="unit_imperial">Imperial (lb, fl oz)</string>
+    <string name="daily_goal">Meta diaria</string>
+    <string name="adjust_goal">Ajustar meta (%1$d%%)</string>
+    <string name="factor_label">Factor (ml/kg)</string>
+    <string name="section_schedule">Horarios</string>
+    <string name="wake_time">Hora de despertar</string>
+    <string name="sleep_time">Hora de dormir</string>
+    <string name="night_cutoff">Dejar de tomar antes de dormir</string>
+    <string name="night_cutoff_value">%1$d h antes de dormir</string>
+    <string name="reminder_frequency">Recordatorio cada</string>
+    <string name="minutes_value">%1$d min</string>
+    <string name="hourly_cap">Máximo por hora</string>
+    <string name="presets_label">Tamaños rápidos</string>
+    <string name="section_appearance">Apariencia</string>
+    <string name="theme">Tema</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="dynamic_color">Color dinámico</string>
+    <string name="section_reminders">Recordatorios</string>
+    <string name="enable_reminders">Activar recordatorios</string>
+    <string name="grant_notifications">Permitir notificaciones</string>
+    <string name="section_backup">Respaldo</string>
+    <string name="backup_local">Solo local</string>
+    <string name="backup_auto">Auto-backup de Android</string>
+    <string name="backup_json">Exportar/importar JSON</string>
+    <string name="export_data">Exportar datos</string>
+    <string name="import_data">Importar datos</string>
+    <string name="backup_error_open_dest">No se pudo abrir el archivo de destino</string>
+    <string name="backup_error_open_src">No se pudo abrir el archivo de origen</string>
+    <string name="backup_error_newer_version">El backup es de una versión más nueva que la app</string>
+    <string name="advanced_mode">Modo avanzado</string>
+    <string name="advanced_settings">Ajustes avanzados</string>
+    <string name="about">Acerca de</string>
+    <string name="locked_advanced_hint">Activá el modo avanzado para editar</string>
+    <string name="advanced_enable_title">¿Activar modo avanzado?</string>
+    <string name="advanced_enable_msg">El modo avanzado te deja modificar valores que afectan tu hidratación y tu salud renal (tope por hora, factor, frecuencia). Usalo bajo tu criterio.</string>
+    <string name="enable">Activar</string>
+    <string name="back_to_simple">Tus valores avanzados quedaron guardados y vuelven cuando reactives el modo avanzado.</string>
+    <string name="reset_to_simple">Volver a valores simples</string>
+
+    <!-- Onboarding -->
+    <string name="ob_welcome_title">Bienvenido a Hydra</string>
+    <string name="ob_welcome_msg">Un registro de agua privado y offline. Sin internet ni permisos invasivos.</string>
+    <string name="ob_detected">Detectado: %1$s</string>
+    <string name="ob_units_title">Idioma y unidades</string>
+    <string name="ob_weight_title">Tu peso</string>
+    <string name="ob_schedule_title">Tu día</string>
+    <string name="ob_season_title">Estación y meta</string>
+    <string name="ob_season_msg">Inferimos la estación por tu país y la fecha. No medimos el clima real (la app funciona sin internet).</string>
+    <string name="ob_goal_is">Tu meta diaria: %1$s</string>
+    <string name="ob_goal_formula">%1$d ml/kg × %2$s</string>
+    <string name="ob_notifications_title">Recordatorios</string>
+    <string name="ob_notifications_msg">Para recordarte tomar agua necesitamos enviarte notificaciones.</string>
+    <string name="ob_summary_title">¡Todo listo!</string>
+    <string name="next">Siguiente</string>
+    <string name="back">Atrás</string>
+    <string name="start">Empezar</string>
+    <string name="skip">Omitir</string>
+
+    <!-- Acerca de / advertencias -->
+    <string name="about_offline">100% offline. Ningún dato sale de tu dispositivo.</string>
+    <string name="about_pure_water">Solo el agua pura cuenta para la meta: té, café u otras bebidas no se contabilizan.</string>
+    <string name="about_activity">La actividad física aumenta tu necesidad (no se incluye en el cálculo).</string>
+    <string name="about_hourly_cap">Mantené la ingesta bajo ~1 L por hora para cuidar tus riñones.</string>
+    <string name="about_season_limit">La estación se infiere offline; el clima real no se puede conocer sin internet ni sensor.</string>
+
+    <!-- Estaciones -->
+    <string name="season_summer">Verano</string>
+    <string name="season_autumn">Otoño</string>
+    <string name="season_winter">Invierno</string>
+    <string name="season_spring">Primavera</string>
+
+    <!-- Notificaciones -->
+    <string name="channel_reminders_name">Recordatorios</string>
+    <string name="channel_reminders_desc">Recordatorios para tomar agua durante el día</string>
+    <string name="notif_due_title">Hora de tomar agua</string>
+    <string name="notif_behind_title">Vas atrasado con el agua</string>
+    <string name="notif_body">%1$s de %2$s · faltan %3$s · tomá ~%4$s</string>
+    <string name="notif_overflow">No llegás a la meta sin pasar ~1 L/h</string>
+    <string name="action_log">Registrar %1$s</string>
+    <string name="action_other">Otro</string>
+    <string name="action_snooze">Posponer</string>
+
+    <!-- Agregados en la revisión -->
+    <string name="country">País/región</string>
+    <string name="country_unset">Sin definir</string>
+    <string name="select_country">Elegí tu país</string>
+    <string name="search">Buscar</string>
+    <string name="today_log">Registros de hoy</string>
+    <string name="no_entries">Todavía no registraste agua hoy</string>
+    <string name="save_as_quick">Guardar como tamaño rápido</string>
+    <string name="delete">Eliminar</string>
+    <string name="add_size">Agregar tamaño</string>
+    <string name="heat_auto">Modo calor: automático (%1$s)</string>
+
+    <!-- v2: historial + gamificación -->
+    <string name="nav_history">Historial</string>
+    <string name="history_title">Historial</string>
+    <string name="stat_current_streak">Racha actual</string>
+    <string name="stat_best_streak">Mejor racha</string>
+    <string name="stat_days_completed">Días cumplidos</string>
+    <string name="stat_avg_completion">Cumplimiento prom.</string>
+    <string name="days_unit">%1$d d</string>
+    <string name="achievements">Logros</string>
+    <string name="last_30_days">Últimos 30 días</string>
+    <string name="no_history">Sin historial todavía. ¡Registrá agua!</string>
+    <string name="goal_reached_celebration">¡Meta cumplida! 🎉 Buen trabajo manteniéndote hidratado.</string>
+    <string name="ach_first_day">Primer día</string>
+    <string name="ach_days_7">Primera semana</string>
+    <string name="ach_days_30">Un mes</string>
+    <string name="ach_days_100">Centurión</string>
+    <string name="ach_days_365">Un año</string>
+    <string name="ach_streak_3">Arrancando</string>
+    <string name="ach_perfect_week">Semana perfecta</string>
+    <string name="ach_streak_14">Dos semanas</string>
+    <string name="ach_streak_30">Mes perfecto</string>
+    <string name="ach_streak_100">Imparable</string>
+    <string name="ach_streak_365">Año perfecto</string>
+
+    <!-- idioma + confirmaciones de borrado -->
+    <string name="language">Idioma</string>
+    <string name="lang_system">Sistema</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_en">Inglés</string>
+    <string name="delete_entry_title">¿Eliminar este registro?</string>
+    <string name="delete_preset_title">¿Eliminar este tamaño rápido?</string>
+
+    <!-- v3: pausa de registro -->
+    <string name="section_pause">Pausar registro</string>
+    <string name="pause_desc">¿Viaje, enfermedad o simplemente necesitás un descanso? Pausá los recordatorios por unos días en vez de desinstalar. Los días en pausa no cortan tu racha, y podés seguir registrando agua si querés.</string>
+    <string name="pause_days_option">%1$d días</string>
+    <plurals name="pause_active">
+        <item quantity="one">En pausa hasta el %1$s (queda %2$d día)</item>
+        <item quantity="other">En pausa hasta el %1$s (quedan %2$d días)</item>
+    </plurals>
+    <string name="pause_resume">Reanudar ahora</string>
+    <plurals name="pause_banner">
+        <item quantity="one">Registro en pausa · queda %1$d día</item>
+        <item quantity="other">Registro en pausa · quedan %1$d días</item>
+    </plurals>
+    <string name="pause_confirm_title">¿Pausar por %1$d días?</string>
+    <string name="pause_confirm_msg">Se detendrán los recordatorios y los días en pausa no cortarán tu racha. El registro se reanuda solo, o antes si tocás Reanudar.</string>
+    <string name="pause_button">Pausar</string>
+
+    <!-- v3: balance mañana/tarde -->
+    <string name="balance_label">Balance mañana/tarde</string>
+    <string name="balance_value">%1$d%% / %2$d%%</string>
+    <string name="balance_hint">Adelanta tu objetivo a la primera mitad del día para que quede menos para la tarde: menos idas al baño de madrugada y mejor sueño.</string>
+    <string name="about_balance">El balance mañana/tarde es orientativo, no un consejo médico: lo que más importa para tu salud es el total diario. Si tenés enfermedad renal o cardíaca, tomás diuréticos o estás embarazada, consultá a tu médico antes de cambiar tu horario de líquidos.</string>
+</resources>

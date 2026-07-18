@@ -1,0 +1,16 @@
+.gradle/
+build/
+app/build/
+/local.properties
+*.keystore
+.idea/
+*.iml
+.DS_Store
+captures/
+app-output/
+.env
+.kotlin/
+# Claude Code machine-local settings (shared .claude/ config, if any, stays committed).
+.claude/settings.local.json
+# Keep the Gradle wrapper jar committed for reproducible builds.
+!gradle/wrapper/gradle-wrapper.jar

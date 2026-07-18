@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hydra</string>
+
+    <!-- Navigation -->
+    <string name="nav_today">Today</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home -->
+    <string name="today_title">Today</string>
+    <string name="goal_progress">%1$s of %2$s</string>
+    <string name="remaining_left">%1$s left</string>
+    <string name="goal_reached">Goal reached 🎉</string>
+    <string name="next_reminder">Next drink around %1$s</string>
+    <string name="no_reminder">Reminders off</string>
+    <string name="add_water">Add water</string>
+    <string name="log_amount">Log %1$s</string>
+    <string name="custom_amount">Custom amount</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="undo">Undo</string>
+    <string name="logged_snackbar">Logged %1$s</string>
+
+    <!-- Heat mode + warnings -->
+    <string name="heat_mode">Heat mode</string>
+    <string name="heat_mode_summer_hint">Suggested: it\'s summer in your area</string>
+    <string name="heat_mode_winter_hint">Suggested: it\'s winter in your area</string>
+    <string name="heat_mode_off_warning">We inferred summer in your area. With heat mode off your goal may be low on hot days. We don\'t measure real temperature, so adjust to how you feel.</string>
+    <string name="heat_mode_on_info">You turned on heat mode but we inferred winter. Your goal rises to 40 ml/kg. Fine if you exercise or it\'s hot; otherwise switch back.</string>
+    <string name="redistribution_behind">You\'re a bit behind — aim for about %1$s by %2$s.</string>
+    <string name="redistribution_cannot_fit">Remaining %1$s won\'t fit before your night cutoff without exceeding ~1 L/h. Drink what you can; finish tomorrow.</string>
+    <string name="per_hour_cap_warning">That exceeds ~1 L/h. Spread it out to protect your kidneys.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="section_profile">Profile</string>
+    <string name="weight">Weight</string>
+    <string name="units">Units</string>
+    <string name="unit_metric">Metric (kg, ml)</string>
+    <string name="unit_imperial">Imperial (lb, fl oz)</string>
+    <string name="daily_goal">Daily goal</string>
+    <string name="adjust_goal">Adjust goal (%1$d%%)</string>
+    <string name="factor_label">Factor (ml/kg)</string>
+    <string name="section_schedule">Schedule</string>
+    <string name="wake_time">Wake time</string>
+    <string name="sleep_time">Sleep time</string>
+    <string name="night_cutoff">Stop drinking before sleep</string>
+    <string name="night_cutoff_value">%1$d h before sleep</string>
+    <string name="reminder_frequency">Reminder every</string>
+    <string name="minutes_value">%1$d min</string>
+    <string name="hourly_cap">Max per hour</string>
+    <string name="presets_label">Quick-add sizes</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="dynamic_color">Dynamic color</string>
+    <string name="section_reminders">Reminders</string>
+    <string name="enable_reminders">Enable reminders</string>
+    <string name="grant_notifications">Allow notifications</string>
+    <string name="section_backup">Backup</string>
+    <string name="backup_local">Local only</string>
+    <string name="backup_auto">Android auto-backup</string>
+    <string name="backup_json">Manual JSON export/import</string>
+    <string name="export_data">Export data</string>
+    <string name="import_data">Import data</string>
+    <string name="backup_error_open_dest">Couldn\'t open the destination file</string>
+    <string name="backup_error_open_src">Couldn\'t open the source file</string>
+    <string name="backup_error_newer_version">This backup is from a newer version of the app</string>
+    <string name="advanced_mode">Advanced mode</string>
+    <string name="advanced_settings">Advanced settings</string>
+    <string name="about">About</string>
+    <string name="locked_advanced_hint">Turn on advanced mode to edit</string>
+    <string name="advanced_enable_title">Enable advanced mode?</string>
+    <string name="advanced_enable_msg">Advanced mode lets you change values that affect your hydration and kidney health (hourly cap, factor, frequency). Use at your own discretion.</string>
+    <string name="enable">Enable</string>
+    <string name="back_to_simple">Your advanced values were kept and will return when you re-enable advanced mode.</string>
+    <string name="reset_to_simple">Back to simple values</string>
+
+    <!-- Onboarding -->
+    <string name="ob_welcome_title">Welcome to Hydra</string>
+    <string name="ob_welcome_msg">A private, offline water tracker. No internet, no invasive permissions.</string>
+    <string name="ob_detected">Detected: %1$s</string>
+    <string name="ob_units_title">Language &amp; units</string>
+    <string name="ob_weight_title">Your weight</string>
+    <string name="ob_schedule_title">Your day</string>
+    <string name="ob_season_title">Season &amp; goal</string>
+    <string name="ob_season_msg">We infer the season from your country and date. We don\'t measure real weather (the app works offline).</string>
+    <string name="ob_goal_is">Your daily goal: %1$s</string>
+    <string name="ob_goal_formula">%1$d ml/kg × %2$s</string>
+    <string name="ob_notifications_title">Reminders</string>
+    <string name="ob_notifications_msg">To remind you to drink water we need to send notifications.</string>
+    <string name="ob_summary_title">All set!</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
+    <string name="start">Start</string>
+    <string name="skip">Skip</string>
+
+    <!-- About / disclaimers -->
+    <string name="about_offline">100% offline. No data ever leaves your device.</string>
+    <string name="about_pure_water">Only pure water counts toward your goal — tea, coffee or other drinks are not counted.</string>
+    <string name="about_activity">Physical activity increases your needs (not included in the calculation).</string>
+    <string name="about_hourly_cap">Keep intake under ~1 L per hour to protect your kidneys.</string>
+    <string name="about_season_limit">The season is inferred offline; real weather can\'t be known without internet or a sensor.</string>
+
+    <!-- Seasons -->
+    <string name="season_summer">Summer</string>
+    <string name="season_autumn">Autumn</string>
+    <string name="season_winter">Winter</string>
+    <string name="season_spring">Spring</string>
+
+    <!-- Notifications -->
+    <string name="channel_reminders_name">Reminders</string>
+    <string name="channel_reminders_desc">Reminders to drink water during the day</string>
+    <string name="notif_due_title">Time to drink water</string>
+    <string name="notif_behind_title">You\'re behind on water</string>
+    <string name="notif_body">%1$s of %2$s · %3$s left · drink ~%4$s</string>
+    <string name="notif_overflow">You won\'t reach the goal without exceeding ~1 L/h</string>
+    <string name="action_log">Log %1$s</string>
+    <string name="action_other">Other</string>
+    <string name="action_snooze">Snooze</string>
+
+    <!-- Added in revision -->
+    <string name="country">Country/region</string>
+    <string name="country_unset">Not set</string>
+    <string name="select_country">Select your country</string>
+    <string name="search">Search</string>
+    <string name="today_log">Today\'s log</string>
+    <string name="no_entries">No water logged yet today</string>
+    <string name="save_as_quick">Save as quick size</string>
+    <string name="delete">Delete</string>
+    <string name="add_size">Add size</string>
+    <string name="heat_auto">Heat mode: automatic (%1$s)</string>
+
+    <!-- v2: history + gamification -->
+    <string name="nav_history">History</string>
+    <string name="history_title">History</string>
+    <string name="stat_current_streak">Current streak</string>
+    <string name="stat_best_streak">Best streak</string>
+    <string name="stat_days_completed">Days completed</string>
+    <string name="stat_avg_completion">Avg. completion</string>
+    <string name="days_unit">%1$d d</string>
+    <string name="achievements">Achievements</string>
+    <string name="last_30_days">Last 30 days</string>
+    <string name="no_history">No history yet. Log some water!</string>
+    <string name="goal_reached_celebration">Goal reached! 🎉 Great job staying hydrated.</string>
+    <string name="ach_first_day">First day</string>
+    <string name="ach_days_7">First week</string>
+    <string name="ach_days_30">One month</string>
+    <string name="ach_days_100">Centurion</string>
+    <string name="ach_days_365">One year</string>
+    <string name="ach_streak_3">Getting started</string>
+    <string name="ach_perfect_week">Perfect week</string>
+    <string name="ach_streak_14">Two weeks</string>
+    <string name="ach_streak_30">Perfect month</string>
+    <string name="ach_streak_100">Unstoppable</string>
+    <string name="ach_streak_365">Perfect year</string>
+
+    <!-- language + delete confirmations -->
+    <string name="language">Language</string>
+    <string name="lang_system">System</string>
+    <string name="lang_es">Spanish</string>
+    <string name="lang_en">English</string>
+    <string name="delete_entry_title">Delete this entry?</string>
+    <string name="delete_preset_title">Delete this quick size?</string>
+
+    <!-- v3: pause tracking -->
+    <string name="section_pause">Pause tracking</string>
+    <string name="pause_desc">Trip, illness or just need a break? Pause reminders for a few days instead of uninstalling. Paused days don\'t break your streak, and you can still log water if you want.</string>
+    <string name="pause_days_option">%1$d days</string>
+    <plurals name="pause_active">
+        <item quantity="one">Paused until %1$s (%2$d day left)</item>
+        <item quantity="other">Paused until %1$s (%2$d days left)</item>
+    </plurals>
+    <string name="pause_resume">Resume now</string>
+    <plurals name="pause_banner">
+        <item quantity="one">Tracking paused · %1$d day left</item>
+        <item quantity="other">Tracking paused · %1$d days left</item>
+    </plurals>
+    <string name="pause_confirm_title">Pause for %1$d days?</string>
+    <string name="pause_confirm_msg">Reminders will stop and paused days won\'t break your streak. Tracking resumes automatically, or earlier if you tap Resume.</string>
+    <string name="pause_button">Pause</string>
+
+    <!-- v3: morning/afternoon balance -->
+    <string name="balance_label">Morning/afternoon balance</string>
+    <string name="balance_value">%1$d%% / %2$d%%</string>
+    <string name="balance_hint">Front-loads your goal into the morning half of your day so less is left for the evening — fewer night-time bathroom trips means better sleep.</string>
+    <string name="about_balance">The morning/afternoon balance is a guide, not medical advice: what matters most for your health is the daily total. If you have kidney or heart disease, take diuretics or are pregnant, ask your doctor before changing your fluid schedule.</string>
+</resources>

@@ -23,15 +23,13 @@ interface DayLogDao {
     @Query("UPDATE day_log SET total_ml = :total WHERE day_key = :dayKey")
     suspend fun setTotal(dayKey: String, total: Int)
 
-    @Query("UPDATE day_log SET closed = 1 WHERE day_key = :dayKey")
-    suspend fun close(dayKey: String)
-
-    /** Atomically close every still-open day before today (one statement). */
+    /**
+     * Atomically close every still-open day before today (one statement). This is
+     * the ONLY way days get closed — a single-day `close(key)` and a
+     * `openDaysBefore(key)` reader both existed and had no caller.
+     */
     @Query("UPDATE day_log SET closed = 1 WHERE closed = 0 AND day_key < :todayKey")
     suspend fun closeDaysBefore(todayKey: String)
-
-    @Query("SELECT * FROM day_log WHERE closed = 0 AND day_key < :todayKey")
-    suspend fun openDaysBefore(todayKey: String): List<DayLogEntity>
 
     /** Recompute every day's cached total from live (non-deleted) intake rows. */
     @Query(

@@ -15,8 +15,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.LocalDrink
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -40,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,13 +51,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.hydra.R
+import com.personal.hydra.domain.CaffeineCutoff
 import com.personal.hydra.domain.UnitConverter
 import com.personal.hydra.domain.model.UnitSystem
+import com.personal.hydra.domain.model.minToLocalTime
 import com.personal.hydra.ui.components.IntStepperField
+import com.personal.hydra.ui.components.PaceChart
 import com.personal.hydra.ui.components.SectionCard
+import com.personal.hydra.ui.components.WarningBanner
 import com.personal.hydra.ui.components.WaterProgressRing
 import com.personal.hydra.ui.hydraViewModel
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import com.personal.hydra.util.VolumeFormat
+import kotlinx.coroutines.launch
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -70,6 +79,7 @@ fun HomeRoute() {
         onCustom = vm::addCustom,
         onDelete = vm::deleteEntry,
         onResume = vm::resumeTracking,
+        onToggleMute = vm::toggleMuteToday,
     )
 }
 
@@ -81,11 +91,16 @@ fun HomeScreen(
     onCustom: (Int, Boolean) -> Unit,
     onDelete: (Long, String) -> Unit,
     onResume: () -> Unit = {},
+    onToggleMute: () -> Unit = {},
 ) {
     var showCustom by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<EntryRow?>(null) }
     val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val timeFmt = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
     val celebrationMsg = stringResource(R.string.goal_reached_celebration)
+    val mutedMsg = stringResource(R.string.mute_today_msg)
+    val unmutedMsg = stringResource(R.string.unmute_today_msg)
     val reached = state.goalMl > 0 && state.consumedMl >= state.goalMl
     var celebrated by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(reached) {
@@ -98,7 +113,36 @@ fun HomeScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.today_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.today_title)) },
+                actions = {
+                    // Only meaningful while reminders are on; a multi-day tracking
+                    // pause already silences everything, so hide it there too.
+                    if (state.remindersEnabled && state.pauseRemainingDays == 0) {
+                        val muted = state.remindersMuted
+                        IconButton(
+                            onClick = {
+                                onToggleMute()
+                                scope.launch { snackbar.showSnackbar(if (muted) unmutedMsg else mutedMsg) }
+                            },
+                        ) {
+                            Icon(
+                                if (muted) Icons.Rounded.NotificationsOff else Icons.Rounded.NotificationsActive,
+                                contentDescription = stringResource(
+                                    if (muted) R.string.unmute_today else R.string.mute_today,
+                                ),
+                                tint = if (muted) {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                },
+                            )
+                        }
+                    }
+                },
+            )
+        },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Column(
@@ -129,6 +173,21 @@ fun HomeScreen(
                 modifier = Modifier.padding(top = 8.dp),
             )
 
+            // Advisory only, and one line tall on purpose: it sits between the ring
+            // and the logging buttons, which is where you look before reaching for
+            // a coffee, without pushing the buttons off screen.
+            state.caffeineNotice?.let { notice ->
+                WarningBanner(
+                    stringResource(
+                        R.string.caffeine_notice,
+                        minToLocalTime(notice.sleepMinute).format(timeFmt),
+                        minToLocalTime(notice.fromMinute).format(timeFmt),
+                        CaffeineCutoff.HOURS_BEFORE_SLEEP,
+                    ),
+                    isInfo = true,
+                )
+            }
+
             SectionCard(title = stringResource(R.string.add_water)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     state.presetsMl.forEach { ml ->
@@ -144,6 +203,32 @@ fun HomeScreen(
                 FilledTonalButton(onClick = { showCustom = true }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Rounded.Add, contentDescription = null)
                     Text(stringResource(R.string.custom_amount), Modifier.padding(start = 8.dp))
+                }
+            }
+
+            state.pace?.let { pace ->
+                SectionCard(title = stringResource(R.string.pace_title)) {
+                    PaceChart(pace = pace)
+                    val delta = pace.deltaMl
+                    Text(
+                        when {
+                            delta >= 0 -> stringResource(
+                                R.string.pace_ahead,
+                                VolumeFormat.volume(delta, state.unit),
+                            )
+                            else -> stringResource(
+                                R.string.pace_behind,
+                                VolumeFormat.volume(-delta, state.unit),
+                            )
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (delta >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                    )
+                    Text(
+                        stringResource(R.string.pace_legend),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
 
@@ -173,9 +258,14 @@ fun HomeScreen(
                 }
             }
 
-            if (!state.remindersEnabled) {
+            val footnote = when {
+                !state.remindersEnabled -> R.string.no_reminder
+                state.remindersMuted -> R.string.mute_today_active
+                else -> null
+            }
+            footnote?.let {
                 Text(
-                    stringResource(R.string.no_reminder),
+                    stringResource(it),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

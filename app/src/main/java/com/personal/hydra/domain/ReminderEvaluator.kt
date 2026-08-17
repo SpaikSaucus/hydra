@@ -32,6 +32,10 @@ object ReminderEvaluator {
         if (PauseManager.isPaused(config.pauses, today)) {
             return done(ReminderDecision.Reason.PAUSED, consumedMl, goal)
         }
+        // One-day mute from the Home top bar; expires on its own tomorrow.
+        if (MuteManager.isMuted(config.remindersMutedDay, today)) {
+            return done(ReminderDecision.Reason.MUTED, consumedMl, goal)
+        }
 
         val sleepFromWake = ScheduleGenerator.minutesFromWake(s.wakeTime, s.sleepTime).let { if (it == 0) 1440 else it }
         val cutoffFromWake = (sleepFromWake - s.nightCutoffBeforeSleepMin).coerceIn(0, 1440)
@@ -49,7 +53,9 @@ object ReminderEvaluator {
         val totalMin = cutoffFromWake.coerceAtLeast(1)
         val elapsed = nowFromWake.coerceIn(0, totalMin)
         val morningShare = s.morningSharePct.coerceIn(Ranges.MORNING_SHARE_MIN, Ranges.MORNING_SHARE_MAX)
-        val ideal = idealAt(goal, elapsed, totalMin, morningShare)
+        // Shared with the Home pace chart, so the notification and the curve the
+        // user is looking at can never disagree.
+        val ideal = PaceCurve.idealAt(goal, elapsed, totalMin, morningShare)
         val isBehind = consumedMl < ideal - BEHIND_TOLERANCE_ML
 
         val minLeft = (cutoffFromWake - nowFromWake).coerceAtLeast(1)
@@ -80,24 +86,6 @@ object ReminderEvaluator {
             isBehind = isBehind,
             overflowWarning = overflow,
         )
-    }
-
-    /**
-     * Piecewise-linear pace: the first half of the wake->cutoff window targets
-     * [morningSharePct]% of the goal, the second half the complement, so the
-     * accumulated target is continuous and reaches exactly `goal` at cutoff.
-     */
-    private fun idealAt(goal: Int, elapsed: Int, totalMin: Int, morningSharePct: Int): Int {
-        val half = totalMin / 2
-        if (half <= 0) return (goal.toLong() * elapsed / totalMin.coerceAtLeast(1)).toInt()
-        val morningMl = goal.toLong() * morningSharePct / 100L
-        return if (elapsed <= half) {
-            (morningMl * elapsed / half).toInt()
-        } else {
-            val afternoonMl = goal.toLong() - morningMl
-            val rest = (totalMin - half).coerceAtLeast(1)
-            (morningMl + afternoonMl * (elapsed - half) / rest).toInt()
-        }
     }
 
     private fun done(reason: ReminderDecision.Reason, consumed: Int, goal: Int) = ReminderDecision(

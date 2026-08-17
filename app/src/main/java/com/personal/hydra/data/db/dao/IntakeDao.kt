@@ -16,13 +16,17 @@ interface IntakeDao {
     @Query("UPDATE intake_entry SET deleted_at = :ts WHERE id = :id")
     suspend fun softDelete(id: Long, ts: Long)
 
-    @Query("UPDATE intake_entry SET deleted_at = NULL WHERE id = :id")
-    suspend fun restore(id: Long)
-
     @Query(
         "SELECT * FROM intake_entry WHERE day_key = :dayKey AND deleted_at IS NULL ORDER BY timestamp ASC",
     )
     fun observeEntriesOfDay(dayKey: String): Flow<List<IntakeEntryEntity>>
+
+    /** Inclusive day-key range (ISO dates sort chronologically), oldest first. */
+    @Query(
+        "SELECT * FROM intake_entry WHERE deleted_at IS NULL AND day_key BETWEEN :fromKey AND :toKey " +
+            "ORDER BY timestamp ASC",
+    )
+    fun observeEntriesBetween(fromKey: String, toKey: String): Flow<List<IntakeEntryEntity>>
 
     @Query("SELECT COALESCE(SUM(amount_ml), 0) FROM intake_entry WHERE day_key = :dayKey AND deleted_at IS NULL")
     suspend fun sumOfDay(dayKey: String): Int

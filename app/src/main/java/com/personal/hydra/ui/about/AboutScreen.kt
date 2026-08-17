@@ -51,6 +51,7 @@ fun AboutRoute(onBack: () -> Unit) {
                 Disclaimer(stringResource(R.string.about_activity))
                 Disclaimer(stringResource(R.string.about_hourly_cap))
                 Disclaimer(stringResource(R.string.about_season_limit))
+                Disclaimer(stringResource(R.string.about_day_boundary))
                 Disclaimer(stringResource(R.string.about_balance))
             }
         }

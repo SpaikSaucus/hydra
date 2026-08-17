@@ -19,12 +19,18 @@ sealed interface BootState {
 
 class AppViewModel(settings: SettingsRepository) : ViewModel() {
 
-    val boot: StateFlow<BootState> = settings.config
-        .map { BootState.Ready(it.onboarding.onboardingDone) as BootState }
+    // ONE eager collector on the config for both process-lifetime flows. Two
+    // separate stateIn(Eagerly) calls meant two DataStore collectors decoding the
+    // same JSON on every write, for as long as the process lived.
+    private val config = settings.config
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val boot: StateFlow<BootState> = config
+        .map { c -> if (c == null) BootState.Loading else BootState.Ready(c.onboarding.onboardingDone) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BootState.Loading)
 
-    val theme: StateFlow<ThemeMode> = settings.config
-        .map { it.settings.theme }
+    val theme: StateFlow<ThemeMode> = config
+        .map { it?.settings?.theme ?: ThemeMode.SYSTEM }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ThemeMode.SYSTEM)
 
     companion object {

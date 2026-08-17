@@ -3,7 +3,6 @@ package com.personal.hydra.data.backup
 import android.content.Context
 import android.net.Uri
 import androidx.room.withTransaction
-import com.personal.hydra.R
 import com.personal.hydra.data.db.HydraDatabase
 import com.personal.hydra.data.settings.SettingsRepository
 import kotlinx.coroutines.Dispatchers
@@ -14,12 +13,14 @@ import kotlinx.serialization.json.Json
 
 enum class ImportStrategy { MERGE, REPLACE }
 
-data class ImportReport(val days: Int, val entries: Int)
-
 /**
  * Manual JSON export/import via the Storage Access Framework (the caller passes
  * a content Uri obtained from CreateDocument/OpenDocument), which needs NO
  * storage permission.
+ *
+ * Both halves report a [BackupReport] on success and throw [BackupException] with
+ * a neutral code on failure, so the caller can always say what happened without
+ * parsing a message.
  */
 class BackupManager(
     private val context: Context,
@@ -28,29 +29,29 @@ class BackupManager(
     private val json: Json = Json { prettyPrint = true; encodeDefaults = true; ignoreUnknownKeys = true },
 ) {
 
-    suspend fun export(target: Uri): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun export(target: Uri): Result<BackupReport> = withContext(Dispatchers.IO) {
         runCatching {
+            val days = db.dayLogDao().allForExport().map { it.toDto() }
+            val entries = db.intakeDao().allForExport().map { it.toDto() }
             val backup = HydraBackup(
                 exportedAt = System.currentTimeMillis(),
                 config = settings.snapshot(),
-                days = db.dayLogDao().allForExport().map { it.toDto() },
-                entries = db.intakeDao().allForExport().map { it.toDto() },
+                days = days,
+                entries = entries,
             )
             val bytes = json.encodeToString(backup).toByteArray()
             context.contentResolver.openOutputStream(target)?.use { it.write(bytes) }
-                ?: error(context.getString(R.string.backup_error_open_dest))
-            Unit
+                ?: throw BackupException(BackupErrorCode.OPEN_DESTINATION)
+            BackupReport(days.size, entries.size)
         }
     }
 
-    suspend fun import(source: Uri, strategy: ImportStrategy): Result<ImportReport> = withContext(Dispatchers.IO) {
+    suspend fun import(source: Uri, strategy: ImportStrategy): Result<BackupReport> = withContext(Dispatchers.IO) {
         runCatching {
             val text = context.contentResolver.openInputStream(source)?.bufferedReader()?.use { it.readText() }
-                ?: error(context.getString(R.string.backup_error_open_src))
+                ?: throw BackupException(BackupErrorCode.OPEN_SOURCE)
             val backup = json.decodeFromString<HydraBackup>(text)
-            require(backup.schemaVersion <= BACKUP_SCHEMA_VERSION) {
-                context.getString(R.string.backup_error_newer_version)
-            }
+            BackupOutcomes.checkSchema(backup.schemaVersion)
             db.withTransaction {
                 if (strategy == ImportStrategy.REPLACE) {
                     db.intakeDao().clear()
@@ -63,7 +64,7 @@ class BackupManager(
                 db.dayLogDao().recomputeAllTotals()
             }
             settings.replaceConfig(backup.config)
-            ImportReport(backup.days.size, backup.entries.size)
+            BackupReport(backup.days.size, backup.entries.size)
         }
     }
 }

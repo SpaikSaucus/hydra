@@ -8,6 +8,7 @@ import com.personal.hydra.domain.model.AppLanguage
 import com.personal.hydra.domain.model.AppSettings
 import com.personal.hydra.domain.model.BackupMode
 import com.personal.hydra.domain.model.ConfigMode
+import com.personal.hydra.domain.model.HeatmapStyle
 import com.personal.hydra.domain.model.HydraConfig
 import com.personal.hydra.domain.model.PausePeriod
 import com.personal.hydra.domain.model.Ranges
@@ -15,6 +16,7 @@ import com.personal.hydra.domain.model.ThemeMode
 import com.personal.hydra.domain.model.UnitSystem
 import com.personal.hydra.domain.model.UserProfile
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.decodeFromString
@@ -34,9 +36,20 @@ class SettingsRepositoryImpl(
 
     private val key = stringPreferencesKey("hydra_config_json")
 
-    override val config: Flow<HydraConfig> = dataStore.data.map { prefs -> decode(prefs[key]) }
+    /**
+     * `distinctUntilChanged` earns its keep: a config emission is expensive
+     * DOWNSTREAM — it restarts the Room "today" queries, re-opens the day snapshot
+     * and re-runs the whole history analytics. DataStore re-emits on any write to
+     * the file, and several setters can produce an identical config (writing the
+     * same slider value, re-importing the same backup), so identical configs must
+     * not cascade. [HydraConfig] is a data tree of data classes, so `==` is exact.
+     */
+    override val config: Flow<HydraConfig> =
+        dataStore.data.map { prefs -> decode(prefs[key]) }.distinctUntilChanged()
 
-    override suspend fun snapshot(): HydraConfig = config.first()
+    /** Reads DataStore directly, NOT `config.first()`: a snapshot feeding a
+     *  read-modify-write must never come from a conflated/shared cache. */
+    override suspend fun snapshot(): HydraConfig = decode(dataStore.data.first()[key])
 
     private fun decode(raw: String?): HydraConfig {
         val parsed = raw?.let { runCatching { json.decodeFromString<HydraConfig>(it) }.getOrNull() } ?: HydraConfig()
@@ -100,6 +113,12 @@ class SettingsRepositoryImpl(
         it.copy(pauses = sanitizedPauses(pauses))
     }
 
+    override suspend fun setRemindersMutedDay(dayKey: String?) = update {
+        // Only a parseable ISO date is stored; anything else clears the mute so a
+        // corrupt value can never silence reminders forever.
+        it.copy(remindersMutedDay = dayKey?.takeIf { d -> runCatching { java.time.LocalDate.parse(d) }.isSuccess })
+    }
+
     /**
      * Drops malformed periods (unparseable dates or start > end). Applied on
      * every path that can write pauses — including [replaceConfig], which backup
@@ -157,14 +176,14 @@ class SettingsRepositoryImpl(
 
     override suspend fun setBackupMode(m: BackupMode) = update { it.mapSettings { s -> s.copy(backupMode = m) } }
 
-    override suspend fun setInferredSeasonCache(seasonName: String) = Unit // reserved; season recomputed each open
+    override suspend fun setCaffeineWarning(enabled: Boolean) =
+        update { it.mapSettings { s -> s.copy(caffeineWarningEnabled = enabled) } }
+
+    override suspend fun setHeatmapStyle(style: HeatmapStyle) =
+        update { it.mapSettings { s -> s.copy(heatmapStyle = style) } }
 
     override suspend fun markOnboardingDone() = update {
-        it.copy(onboarding = it.onboarding.copy(onboardingDone = true, lastCompletedStep = 7))
-    }
-
-    override suspend fun setOnboardingStep(step: Int) = update {
-        it.copy(onboarding = it.onboarding.copy(lastCompletedStep = step))
+        it.copy(onboarding = it.onboarding.copy(onboardingDone = true))
     }
 
     override suspend fun replaceConfig(c: HydraConfig) = update { c.copy(pauses = sanitizedPauses(c.pauses)) }

@@ -4,7 +4,9 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.personal.hydra.core.time.DayKeyResolver
-import com.personal.hydra.data.backup.ImportReport
+import com.personal.hydra.data.backup.BackupOp
+import com.personal.hydra.data.backup.BackupOutcome
+import com.personal.hydra.data.backup.BackupOutcomes
 import com.personal.hydra.data.backup.ImportStrategy
 import com.personal.hydra.di.AppContainer
 import com.personal.hydra.domain.Hydration
@@ -18,8 +20,11 @@ import com.personal.hydra.domain.model.Ranges
 import com.personal.hydra.domain.model.ThemeMode
 import com.personal.hydra.domain.model.UnitSystem
 import com.personal.hydra.reminder.ReminderScheduler
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,9 +44,17 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     private val settings = container.settingsRepository
     private val resolver = DayKeyResolver()
 
+    /**
+     * One-shot export/import results. A backup that finished — well or badly —
+     * must never be silent, so the screen consumes these as a snackbar.
+     * `replay = 0`: rotating the screen should not re-announce an old import.
+     */
+    private val _backupEvents = MutableSharedFlow<BackupOutcome>(extraBufferCapacity = 1)
+    val backupEvents: SharedFlow<BackupOutcome> = _backupEvents.asSharedFlow()
+
     val uiState: StateFlow<SettingsUiState> = settings.config
         .map { c ->
-            val today = LocalDate.parse(resolver.todayKey(c.settings.wakeTime))
+            val today = LocalDate.parse(resolver.todayKey())
             SettingsUiState(
                 config = c,
                 goalMl = Hydration.goal(c, LocalDate.now()).goalMl,
@@ -62,17 +75,18 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     fun setMorningShare(pct: Int) = run { settings.setMorningShare(pct) }
     fun setHourlyCap(ml: Int) = run { settings.setHourlyCap(ml) }
     fun setBackupMode(m: BackupMode) = run { settings.setBackupMode(m) }
+    fun setCaffeineWarning(enabled: Boolean) = run { settings.setCaffeineWarning(enabled) }
 
     fun startPause(days: Int) = run {
         val c = settings.snapshot()
-        val today = LocalDate.parse(resolver.todayKey(c.settings.wakeTime))
+        val today = LocalDate.parse(resolver.todayKey())
         settings.setPauses(PauseManager.startPause(c.pauses, today, days))
         container.notifier.cancel() // dismiss any reminder currently showing
     }
 
     fun resumePause() = run {
         val c = settings.snapshot()
-        val today = LocalDate.parse(resolver.todayKey(c.settings.wakeTime))
+        val today = LocalDate.parse(resolver.todayKey())
         settings.setPauses(PauseManager.resumeEarly(c.pauses, today))
     }
 
@@ -115,13 +129,17 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    suspend fun export(uri: Uri): Result<Unit> = container.backupManager.export(uri)
+    fun export(uri: Uri) = viewModelScope.launch {
+        _backupEvents.emit(BackupOutcomes.of(BackupOp.EXPORT, container.backupManager.export(uri)))
+    }
 
-    suspend fun import(uri: Uri): Result<ImportReport> =
-        container.backupManager.import(uri, ImportStrategy.REPLACE)
-            // The imported config may pause tracking or lower the goal; drop any
-            // reminder posted under the old config — the next tick re-evaluates.
-            .onSuccess { container.notifier.cancel() }
+    fun import(uri: Uri) = viewModelScope.launch {
+        val result = container.backupManager.import(uri, ImportStrategy.REPLACE)
+        // The imported config may pause tracking or lower the goal; drop any
+        // reminder posted under the old config — the next tick re-evaluates.
+        result.onSuccess { container.notifier.cancel() }
+        _backupEvents.emit(BackupOutcomes.of(BackupOp.IMPORT, result))
+    }
 
     private fun run(block: suspend () -> Unit) {
         viewModelScope.launch { block() }

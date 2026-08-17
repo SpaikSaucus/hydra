@@ -10,6 +10,12 @@ captures/
 app-output/
 .env
 .kotlin/
+# Exported hydration history is personal health data — never commit it.
+hydra-backup*.json
+# Git Bash / MSYS crash dumps. Local noise, never part of the project.
+*.stackdump
+# Working notes for whoever edits the code, not product documentation.
+docs/internal-notes.md
 # Claude Code machine-local settings (shared .claude/ config, if any, stays committed).
 .claude/settings.local.json
 # Keep the Gradle wrapper jar committed for reproducible builds.

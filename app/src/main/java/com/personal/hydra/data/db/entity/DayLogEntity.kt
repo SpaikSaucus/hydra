@@ -27,6 +27,17 @@ data class DayLogEntity(
     @ColumnInfo(name = "hourly_cap_ml") val hourlyCapMl: Int,
     @ColumnInfo(name = "zone_id") val zoneId: String,
 
+    /**
+     * Morning share of the goal in force that day (added in schema v2). Without it,
+     * the pace curve of a past day had to be redrawn against the CURRENT balance.
+     *
+     * No Kotlin default on purpose: every construction site must state which day's
+     * balance it means. The SQL default only exists for rows migrated from v1,
+     * which predate the column — it must stay in step with
+     * `Ranges.MORNING_SHARE_DEFAULT` (annotations can't reference it).
+     */
+    @ColumnInfo(name = "morning_share_pct", defaultValue = "65") val morningSharePct: Int,
+
     @ColumnInfo(name = "total_ml") val totalMl: Int = 0,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "closed") val closed: Boolean = false,

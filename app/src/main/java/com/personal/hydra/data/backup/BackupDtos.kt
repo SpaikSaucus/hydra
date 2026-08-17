@@ -4,6 +4,7 @@ import com.personal.hydra.data.db.entity.DayLogEntity
 import com.personal.hydra.data.db.entity.IntakeEntryEntity
 import com.personal.hydra.domain.model.HydraConfig
 import com.personal.hydra.domain.model.IntakeSource
+import com.personal.hydra.domain.model.Ranges
 import com.personal.hydra.domain.model.UnitSystem
 import kotlinx.serialization.Serializable
 
@@ -37,6 +38,13 @@ data class DayLogDto(
     val totalMl: Int,
     val createdAt: Long,
     val closed: Boolean,
+    /**
+     * Added with DB schema v2. Optional here on purpose, so the backup format did
+     * NOT need a version bump: an older file simply lacks the key and falls back
+     * to the app default, and a newer file stays readable by an older build
+     * (`ignoreUnknownKeys`). Backward AND forward compatible.
+     */
+    val morningSharePct: Int = Ranges.MORNING_SHARE_DEFAULT,
 )
 
 @Serializable
@@ -53,13 +61,15 @@ data class IntakeDto(
 fun DayLogEntity.toDto() = DayLogDto(
     dayKey, goalMl, baseGoalMl, weightKg, factorMlKg, manualAdjustPct, heatMode, inferredSeason,
     wakeMinuteOfDay, cutoffMinuteOfDay, hourlyCapMl, zoneId, totalMl, createdAt, closed,
+    morningSharePct,
 )
 
 fun DayLogDto.toEntity() = DayLogEntity(
     dayKey = dayKey, goalMl = goalMl, baseGoalMl = baseGoalMl, weightKg = weightKg,
     factorMlKg = factorMlKg, manualAdjustPct = manualAdjustPct, heatMode = heatMode,
     inferredSeason = inferredSeason, wakeMinuteOfDay = wakeMinuteOfDay,
-    cutoffMinuteOfDay = cutoffMinuteOfDay, hourlyCapMl = hourlyCapMl, zoneId = zoneId,
+    cutoffMinuteOfDay = cutoffMinuteOfDay, hourlyCapMl = hourlyCapMl,
+    morningSharePct = morningSharePct, zoneId = zoneId,
     totalMl = totalMl, createdAt = createdAt, closed = closed,
 )
 

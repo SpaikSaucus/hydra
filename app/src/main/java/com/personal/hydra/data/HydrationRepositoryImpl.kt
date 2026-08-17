@@ -13,7 +13,9 @@ import com.personal.hydra.domain.SeasonInference
 import com.personal.hydra.domain.model.ConfigMode
 import com.personal.hydra.domain.model.HydraConfig
 import com.personal.hydra.domain.model.IntakeSource
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -31,25 +33,48 @@ class HydrationRepositoryImpl(
     private val clock: Clock = Clock.systemDefaultZone(),
 ) : HydrationRepository {
 
-    override fun observeToday(): Flow<DayLogEntity?> =
-        settings.config.flatMapLatest { c ->
-            val key = dayKeyResolver.todayKey(c.settings.wakeTime, clock.zone)
-            flow {
-                ensureDayOpen(key, c)
-                emitAll(dayLogDao.observeDay(key))
-            }
+    /**
+     * The current day key, re-emitted just after every midnight.
+     *
+     * Without this, a "today" flow only re-keyed when the CONFIG happened to
+     * change: leaving the app open across midnight left Home bound to yesterday's
+     * row while new drinks were already being filed under the new day — a ring
+     * that refused to move. Costs one suspended coroutine, and only while someone
+     * collects (the ViewModels use `WhileSubscribed`), so it is not polling.
+     */
+    private fun dayKeys(): Flow<String> = flow {
+        while (true) {
+            emit(dayKeyResolver.todayKey(clock.zone))
+            delay(dayKeyResolver.millisUntilNextDay(clock.zone))
         }
+    }
 
+    override fun observeToday(): Flow<DayLogEntity?> =
+        combine(settings.config, dayKeys()) { c, key -> c to key }
+            .flatMapLatest { (c, key) ->
+                flow {
+                    // Rolling over here (not only in HomeViewModel.init) is what makes
+                    // yesterday freeze without the app being restarted. Idempotent, and
+                    // one UPDATE that normally matches no rows.
+                    dayLogDao.closeDaysBefore(key)
+                    ensureDayOpen(key, c)
+                    emitAll(dayLogDao.observeDay(key))
+                }
+            }
+
+    // No config dependency: since v1.4 the day key derives from the calendar alone,
+    // so the only thing that can re-key this flow is the clock.
     override fun observeTodayEntries(): Flow<List<IntakeEntryEntity>> =
-        settings.config.flatMapLatest { c ->
-            intakeDao.observeEntriesOfDay(dayKeyResolver.todayKey(c.settings.wakeTime, clock.zone))
-        }
+        dayKeys().flatMapLatest { key -> intakeDao.observeEntriesOfDay(key) }
 
     override fun observeHistory(): Flow<List<DayLogEntity>> = dayLogDao.observeAllDays()
 
+    override fun observeEntriesBetween(fromKey: String, toKey: String): Flow<List<IntakeEntryEntity>> =
+        intakeDao.observeEntriesBetween(fromKey, toKey)
+
     override suspend fun ensureToday(): DayLogEntity {
         val c = settings.snapshot()
-        val key = dayKeyResolver.todayKey(c.settings.wakeTime, clock.zone)
+        val key = dayKeyResolver.todayKey(clock.zone)
         dayLogDao.closeDaysBefore(key)
         return ensureDayOpen(key, c)
     }
@@ -60,7 +85,9 @@ class HydrationRepositoryImpl(
      * Closed days are never touched (immutable history).
      */
     private suspend fun ensureDayOpen(dayKey: String, c: HydraConfig): DayLogEntity {
-        val today = LocalDate.now(clock)
+        // The day's OWN date drives goal/season, so a late-night entry that opens
+        // yesterday's row is snapshotted with yesterday's inputs.
+        val today = LocalDate.parse(dayKey)
         val existing = dayLogDao.getDay(dayKey)
         if (existing != null && existing.closed) return existing
 
@@ -83,6 +110,7 @@ class HydrationRepositoryImpl(
                 wakeMinuteOfDay = s.wakeTimeMin,
                 cutoffMinuteOfDay = cutoffMin,
                 hourlyCapMl = s.maxIntakePerHourMl,
+                morningSharePct = s.morningSharePct,
                 zoneId = clock.zone.id,
                 totalMl = 0,
                 createdAt = Instant.now(clock).toEpochMilli(),
@@ -104,6 +132,9 @@ class HydrationRepositoryImpl(
             wakeMinuteOfDay = s.wakeTimeMin,
             cutoffMinuteOfDay = cutoffMin,
             hourlyCapMl = s.maxIntakePerHourMl,
+            // Re-derived like the goal: the OPEN day follows the current balance
+            // ("today and onward"), and freezes when the day closes.
+            morningSharePct = s.morningSharePct,
         )
         if (desired != existing) dayLogDao.update(desired)
         return desired
@@ -111,7 +142,7 @@ class HydrationRepositoryImpl(
 
     override suspend fun addIntake(amountMl: Int, source: IntakeSource, at: Long): Long {
         val c = settings.snapshot()
-        val key = dayKeyResolver.dayKeyFor(at, c.settings.wakeTime, clock.zone)
+        val key = dayKeyResolver.dayKeyFor(at, clock.zone)
         var id = 0L
         transaction {
             // Open the day inside the transaction so the row + entry + total commit
@@ -138,23 +169,12 @@ class HydrationRepositoryImpl(
         }
     }
 
-    override suspend fun restoreIntake(id: Long, dayKey: String) {
-        transaction {
-            intakeDao.restore(id)
-            dayLogDao.setTotal(dayKey, intakeDao.sumOfDay(dayKey))
-        }
-    }
-
-    override suspend fun consumedToday(): Int {
-        val c = settings.snapshot()
-        return intakeDao.sumOfDay(dayKeyResolver.todayKey(c.settings.wakeTime, clock.zone))
-    }
+    override suspend fun consumedToday(): Int = intakeDao.sumOfDay(dayKeyResolver.todayKey(clock.zone))
 
     override suspend fun intakeInLastHour(at: Long): Int = intakeDao.sumSince(at - 3_600_000L)
 
     override suspend fun minutesSinceLastIntake(at: Long): Int? {
-        val c = settings.snapshot()
-        val key = dayKeyResolver.todayKey(c.settings.wakeTime, clock.zone)
+        val key = dayKeyResolver.todayKey(clock.zone)
         val last = intakeDao.lastTimestampOfDay(key) ?: return null
         return ((at - last) / 60_000L).toInt()
     }

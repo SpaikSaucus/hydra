@@ -45,15 +45,27 @@ data class AppSettings(
     val remindersEnabled: Boolean = false,
     val presetsMl: List<Int> = Ranges.DEFAULT_PRESETS,
     val backupMode: BackupMode = BackupMode.LOCAL_ONLY,
+    /**
+     * Advisory caffeine notice on Home. On by default; purely informational, so
+     * it touches neither the goal nor the streaks nor the reminders.
+     */
+    val caffeineWarningEnabled: Boolean = true,
+    /** Remembered until the user changes it — hence a setting, not screen state. */
+    val heatmapStyle: HeatmapStyle = HeatmapStyle.GRID,
 ) {
     val wakeTime: LocalTime get() = LocalTime.of(wakeTimeMin / 60, wakeTimeMin % 60)
     val sleepTime: LocalTime get() = LocalTime.of(sleepTimeMin / 60, sleepTimeMin % 60)
 }
 
+/**
+ * Onboarding is all-or-nothing: the wizard's step lives in a non-saveable
+ * `remember`, so there is no partial progress to persist. A `lastCompletedStep`
+ * field used to sit here, written once with a hard-coded 7 (the wizard has 5
+ * steps) and read by nobody.
+ */
 @Serializable
 data class OnboardingState(
     val onboardingDone: Boolean = false,
-    val lastCompletedStep: Int = 0,
     val schemaVersion: Int = 1,
 )
 
@@ -77,6 +89,13 @@ data class HydraConfig(
     val settings: AppSettings = AppSettings(),
     val onboarding: OnboardingState = OnboardingState(),
     val pauses: List<PausePeriod> = emptyList(),
+    /**
+     * Day key (ISO date) whose reminders the user muted from the Home top bar.
+     * Self-expiring: once the calendar day changes it simply stops matching
+     * today, so reminders come back on their own. Unlike [pauses] it is purely
+     * cosmetic for tracking — streaks and logging are untouched.
+     */
+    val remindersMutedDay: String? = null,
     val configSchemaVersion: Int = 1,
 )
 

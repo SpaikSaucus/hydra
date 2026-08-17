@@ -33,15 +33,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +55,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.hydra.R
+import com.personal.hydra.data.backup.BackupErrorCode
+import com.personal.hydra.data.backup.BackupOp
+import com.personal.hydra.data.backup.BackupOutcome
+import com.personal.hydra.domain.CaffeineCutoff
 import com.personal.hydra.domain.SeasonInference
 import com.personal.hydra.domain.UnitConverter
 import com.personal.hydra.domain.model.AppLanguage
@@ -70,7 +77,6 @@ import com.personal.hydra.ui.components.WeightStepper
 import com.personal.hydra.ui.hydraViewModel
 import com.personal.hydra.util.LocaleHelper
 import com.personal.hydra.util.VolumeFormat
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -82,7 +88,6 @@ fun SettingsRoute(onOpenAbout: () -> Unit) {
     val vm = hydraViewModel { SettingsViewModel(it) }
     val state by vm.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     val profile = state.config.profile
     val s = state.config.settings
@@ -107,14 +112,28 @@ fun SettingsRoute(onOpenAbout: () -> Unit) {
         }
     }
 
+    // Cancelling the file picker hands back a null Uri: that is the user backing
+    // out, not a failure, so it stays silent.
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) scope.launch { vm.export(uri) }
+        if (uri != null) vm.export(uri)
     }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) scope.launch { vm.import(uri) }
+        if (uri != null) vm.import(uri)
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) }) { padding ->
+    // Every export/import ends in a message — silence used to make a failed
+    // import indistinguishable from a successful one.
+    val snackbar = remember { SnackbarHostState() }
+    LaunchedEffect(vm) {
+        vm.backupEvents.collect { outcome ->
+            snackbar.showSnackbar(backupMessage(context, outcome), duration = SnackbarDuration.Long)
+        }
+    }
+
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) },
+        snackbarHost = { SnackbarHost(snackbar) },
+    ) { padding ->
         Column(
             Modifier
                 .fillMaxSize()
@@ -151,18 +170,18 @@ fun SettingsRoute(onOpenAbout: () -> Unit) {
                 )
                 if (advanced) {
                     LabeledSlider(
-                        label = stringResource(R.string.adjust_goal, profile.manualAdjustPct),
-                        value = profile.manualAdjustPct.toFloat(),
-                        range = Ranges.ADJ_MIN.toFloat()..Ranges.ADJ_MAX.toFloat(),
+                        value = profile.manualAdjustPct,
+                        range = Ranges.ADJ_MIN..Ranges.ADJ_MAX,
                         enabled = true,
-                        onChange = { vm.setAdjust(it.roundToInt()) },
+                        label = { pct -> stringResource(R.string.adjust_goal, pct) },
+                        onCommit = vm::setAdjust,
                     )
                     LabeledSlider(
-                        label = "${stringResource(R.string.factor_label)}: ${profile.factorMlKg}",
-                        value = profile.factorMlKg.toFloat(),
-                        range = Ranges.FACTOR_MIN.toFloat()..Ranges.FACTOR_MAX.toFloat(),
+                        value = profile.factorMlKg,
+                        range = Ranges.FACTOR_MIN..Ranges.FACTOR_MAX,
                         enabled = true,
-                        onChange = { vm.setFactor(it.roundToInt()) },
+                        label = { f -> "${stringResource(R.string.factor_label)}: $f" },
+                        onCommit = vm::setFactor,
                     )
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.heat_mode), Modifier.weight(1f))
@@ -185,6 +204,11 @@ fun SettingsRoute(onOpenAbout: () -> Unit) {
 
             // Schedule
             SectionCard(title = stringResource(R.string.section_schedule)) {
+                Text(
+                    stringResource(R.string.schedule_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 TimeRow(stringResource(R.string.wake_time), minToLocalTime(s.wakeTimeMin).format(timeFmt)) {
                     pickTime(context, s.wakeTimeMin) { vm.setWake(it) }
                 }
@@ -192,23 +216,39 @@ fun SettingsRoute(onOpenAbout: () -> Unit) {
                     pickTime(context, s.sleepTimeMin) { vm.setSleep(it) }
                 }
                 LabeledSlider(
-                    label = stringResource(R.string.night_cutoff) + ": " +
-                        stringResource(R.string.night_cutoff_value, s.nightCutoffBeforeSleepMin / 60),
-                    value = s.nightCutoffBeforeSleepMin.toFloat(),
-                    range = Ranges.CUTOFF_MIN.toFloat()..Ranges.CUTOFF_MAX.toFloat(),
+                    value = s.nightCutoffBeforeSleepMin,
+                    range = Ranges.CUTOFF_MIN..Ranges.CUTOFF_MAX,
                     enabled = advanced,
-                    onChange = { vm.setCutoff((it / 30).roundToInt() * 30) },
+                    step = 30,
+                    label = { min ->
+                        stringResource(R.string.night_cutoff) + ": " +
+                            stringResource(R.string.night_cutoff_value, min / 60)
+                    },
+                    onCommit = vm::setCutoff,
                 )
                 LabeledSlider(
-                    label = stringResource(R.string.balance_label) + ": " +
-                        stringResource(R.string.balance_value, s.morningSharePct, 100 - s.morningSharePct),
-                    value = s.morningSharePct.toFloat(),
-                    range = Ranges.MORNING_SHARE_MIN.toFloat()..Ranges.MORNING_SHARE_MAX.toFloat(),
+                    value = s.morningSharePct,
+                    range = Ranges.MORNING_SHARE_MIN..Ranges.MORNING_SHARE_MAX,
                     enabled = advanced,
-                    onChange = { vm.setMorningShare((it / 5).roundToInt() * 5) },
+                    step = 5,
+                    label = { pct ->
+                        stringResource(R.string.balance_label) + ": " +
+                            stringResource(R.string.balance_value, pct, 100 - pct)
+                    },
+                    onCommit = vm::setMorningShare,
                 )
                 Text(
                     stringResource(R.string.balance_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                // Lives in Schedule, not Reminders: the notice is derived from the
+                // sleep time set right above it, and it posts nothing.
+                SwitchRow(stringResource(R.string.caffeine_setting), s.caffeineWarningEnabled) {
+                    vm.setCaffeineWarning(it)
+                }
+                Text(
+                    stringResource(R.string.caffeine_setting_hint, CaffeineCutoff.HOURS_BEFORE_SLEEP),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -280,19 +320,25 @@ fun SettingsRoute(onOpenAbout: () -> Unit) {
                     if (on) requestRemindersOn() else vm.setRemindersEnabled(false)
                 }
                 LabeledSlider(
-                    label = stringResource(R.string.reminder_frequency) + " " +
-                        stringResource(R.string.minutes_value, s.reminderIntervalMin),
-                    value = s.reminderIntervalMin.toFloat(),
-                    range = Ranges.INTERVAL_MIN.toFloat()..Ranges.INTERVAL_MAX.toFloat(),
+                    value = s.reminderIntervalMin,
+                    range = Ranges.INTERVAL_MIN..Ranges.INTERVAL_MAX,
                     enabled = advanced,
-                    onChange = { vm.setInterval((it / 15).roundToInt() * 15) },
+                    step = 15,
+                    label = { min ->
+                        stringResource(R.string.reminder_frequency) + " " +
+                            stringResource(R.string.minutes_value, min)
+                    },
+                    onCommit = vm::setInterval,
                 )
                 LabeledSlider(
-                    label = stringResource(R.string.hourly_cap) + ": " + VolumeFormat.volume(s.maxIntakePerHourMl, s.unitSystem),
-                    value = s.maxIntakePerHourMl.toFloat(),
-                    range = Ranges.MAX_PER_HOUR_MIN.toFloat()..Ranges.MAX_PER_HOUR_MAX.toFloat(),
+                    value = s.maxIntakePerHourMl,
+                    range = Ranges.MAX_PER_HOUR_MIN..Ranges.MAX_PER_HOUR_MAX,
                     enabled = advanced,
-                    onChange = { vm.setHourlyCap((it / 100).roundToInt() * 100) },
+                    step = 100,
+                    label = { ml ->
+                        stringResource(R.string.hourly_cap) + ": " + VolumeFormat.volume(ml, s.unitSystem)
+                    },
+                    onCommit = vm::setHourlyCap,
                 )
                 if (!advanced) LockedHint()
             }
@@ -391,23 +437,49 @@ fun SettingsRoute(onOpenAbout: () -> Unit) {
     }
 }
 
+/**
+ * Slider that persists only the RELEASED value.
+ *
+ * `Slider.onValueChange` fires on every pointer delta, and every persisted value
+ * is a DataStore file write whose emission restarts the Room "today" queries,
+ * re-opens the day snapshot and re-runs the whole history analytics. Writing per
+ * pixel turned one drag into dozens of full cascades (and dozens of fsyncs), so
+ * the dragged position is kept here and committed once, on release.
+ *
+ * [label] receives the value being SHOWN, so the read-out still tracks the finger.
+ */
 @Composable
 private fun LabeledSlider(
-    label: String,
-    value: Float,
-    range: ClosedFloatingPointRange<Float>,
+    value: Int,
+    range: IntRange,
     enabled: Boolean,
-    onChange: (Float) -> Unit,
+    step: Int = 1,
+    label: @Composable (Int) -> String,
+    onCommit: (Int) -> Unit,
 ) {
+    // Re-seeded whenever the committed value arrives, which also drops the pending
+    // drag once it has been persisted.
+    var pending by remember(value) { mutableStateOf<Int?>(null) }
+    val shown = pending ?: value
     Column {
         Text(
-            label,
+            label(shown),
             style = MaterialTheme.typography.bodyMedium,
             color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Slider(value = value.coerceIn(range.start, range.endInclusive), onValueChange = onChange, valueRange = range, enabled = enabled)
+        Slider(
+            value = shown.coerceIn(range.first, range.last).toFloat(),
+            onValueChange = { pending = snapToStep(it, step, range) },
+            onValueChangeFinished = { pending?.let(onCommit) },
+            valueRange = range.first.toFloat()..range.last.toFloat(),
+            enabled = enabled,
+        )
     }
 }
+
+/** Slider positions are continuous; every setting here is a discrete step. */
+private fun snapToStep(raw: Float, step: Int, range: IntRange): Int =
+    ((raw / step).roundToInt() * step).coerceIn(range.first, range.last)
 
 @Composable
 private fun LockedHint() {
@@ -479,6 +551,31 @@ private fun formatIsoDay(iso: String?): String = iso?.let {
         LocalDate.parse(it).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
     }.getOrDefault(it)
 } ?: ""
+
+/**
+ * The one place a backup outcome becomes words. The data layer only produces
+ * codes and row counts (same rule the domain's warnings follow), so both locales
+ * are translated here and a success always states what it moved.
+ */
+private fun backupMessage(context: Context, outcome: BackupOutcome): String = when (outcome) {
+    is BackupOutcome.Done -> context.getString(
+        if (outcome.op == BackupOp.EXPORT) R.string.backup_export_ok else R.string.backup_import_ok,
+        outcome.report.days,
+        outcome.report.entries,
+    )
+    is BackupOutcome.Failed -> context.getString(
+        if (outcome.op == BackupOp.EXPORT) R.string.backup_export_failed else R.string.backup_import_failed,
+        context.getString(backupReason(outcome.code)),
+    )
+}
+
+private fun backupReason(code: BackupErrorCode): Int = when (code) {
+    BackupErrorCode.OPEN_DESTINATION -> R.string.backup_error_open_dest
+    BackupErrorCode.OPEN_SOURCE -> R.string.backup_error_open_src
+    BackupErrorCode.NEWER_SCHEMA -> R.string.backup_error_newer_version
+    BackupErrorCode.MALFORMED -> R.string.backup_error_malformed
+    BackupErrorCode.UNKNOWN -> R.string.backup_error_unknown
+}
 
 private fun seasonLabel(season: Season): Int = when (season) {
     Season.SUMMER -> R.string.season_summer

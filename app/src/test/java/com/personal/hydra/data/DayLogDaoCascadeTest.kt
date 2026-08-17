@@ -46,7 +46,7 @@ class DayLogDaoCascadeTest {
         dayKey = key, goalMl = goal, baseGoalMl = goal, weightKg = 70f, factorMlKg = 33,
         manualAdjustPct = 0, heatMode = false, inferredSeason = "WINTER",
         wakeMinuteOfDay = 420, cutoffMinuteOfDay = 1200, hourlyCapMl = 900,
-        zoneId = "UTC", totalMl = 0, createdAt = 0L, closed = false,
+        morningSharePct = 65, zoneId = "UTC", totalMl = 0, createdAt = 0L, closed = false,
     )
 
     private fun entry(key: String, ml: Int) = IntakeEntryEntity(

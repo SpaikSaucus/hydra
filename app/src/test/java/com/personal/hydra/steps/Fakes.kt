@@ -9,6 +9,7 @@ import com.personal.hydra.domain.model.AppLanguage
 import com.personal.hydra.domain.model.AppSettings
 import com.personal.hydra.domain.model.BackupMode
 import com.personal.hydra.domain.model.ConfigMode
+import com.personal.hydra.domain.model.HeatmapStyle
 import com.personal.hydra.domain.model.HydraConfig
 import com.personal.hydra.domain.model.PausePeriod
 import com.personal.hydra.domain.model.ThemeMode
@@ -33,17 +34,10 @@ class FakeDayLogDao : DayLogDao {
         store[dayKey]?.let { store[dayKey] = it.copy(totalMl = total) }
     }
 
-    override suspend fun close(dayKey: String) {
-        store[dayKey]?.let { store[dayKey] = it.copy(closed = true) }
-    }
-
     override suspend fun closeDaysBefore(todayKey: String) {
         store.values.filter { !it.closed && it.dayKey < todayKey }
             .forEach { store[it.dayKey] = it.copy(closed = true) }
     }
-
-    override suspend fun openDaysBefore(todayKey: String): List<DayLogEntity> =
-        store.values.filter { !it.closed && it.dayKey < todayKey }
 
     // No intake source here; production recompute lives in Room. No test drives
     // backup import through the fakes (BackupManager uses the real DB).
@@ -71,13 +65,11 @@ class FakeIntakeDao : IntakeDao {
         if (i >= 0) entries[i] = entries[i].copy(deletedAt = ts)
     }
 
-    override suspend fun restore(id: Long) {
-        val i = entries.indexOfFirst { it.id == id }
-        if (i >= 0) entries[i] = entries[i].copy(deletedAt = null)
-    }
-
     override fun observeEntriesOfDay(dayKey: String): Flow<List<IntakeEntryEntity>> =
         flowOf(entries.filter { it.dayKey == dayKey && it.deletedAt == null }.sortedBy { it.timestamp })
+
+    override fun observeEntriesBetween(fromKey: String, toKey: String): Flow<List<IntakeEntryEntity>> =
+        flowOf(entries.filter { it.deletedAt == null && it.dayKey in fromKey..toKey }.sortedBy { it.timestamp })
 
     override suspend fun sumOfDay(dayKey: String): Int =
         entries.filter { it.dayKey == dayKey && it.deletedAt == null }.sumOf { it.amountMl }
@@ -115,6 +107,9 @@ class FakeSettingsRepository(initial: HydraConfig = HydraConfig()) : SettingsRep
     override suspend fun setPauses(pauses: List<PausePeriod>) {
         state.value = state.value.copy(pauses = pauses)
     }
+    override suspend fun setRemindersMutedDay(dayKey: String?) {
+        state.value = state.value.copy(remindersMutedDay = dayKey)
+    }
     override suspend fun setReminderInterval(min: Int) = s { it.copy(reminderIntervalMin = min) }
     override suspend fun setSnooze(min: Int) = s { it.copy(snoozeMin = min) }
     override suspend fun setHourlyCap(ml: Int) = s { it.copy(maxIntakePerHourMl = ml) }
@@ -126,12 +121,10 @@ class FakeSettingsRepository(initial: HydraConfig = HydraConfig()) : SettingsRep
     override suspend fun setLanguage(l: AppLanguage) = s { it.copy(language = l) }
     override suspend fun setPresets(presetsMl: List<Int>) = s { it.copy(presetsMl = presetsMl) }
     override suspend fun setBackupMode(m: BackupMode) = s { it.copy(backupMode = m) }
-    override suspend fun setInferredSeasonCache(seasonName: String) = Unit
+    override suspend fun setCaffeineWarning(enabled: Boolean) = s { it.copy(caffeineWarningEnabled = enabled) }
+    override suspend fun setHeatmapStyle(style: HeatmapStyle) = s { it.copy(heatmapStyle = style) }
     override suspend fun markOnboardingDone() {
         state.value = state.value.copy(onboarding = state.value.onboarding.copy(onboardingDone = true))
-    }
-    override suspend fun setOnboardingStep(step: Int) {
-        state.value = state.value.copy(onboarding = state.value.onboarding.copy(lastCompletedStep = step))
     }
     override suspend fun replaceConfig(c: HydraConfig) { state.value = c }
 }

@@ -3,6 +3,7 @@ package com.personal.hydra.data.settings
 import com.personal.hydra.domain.model.AppLanguage
 import com.personal.hydra.domain.model.BackupMode
 import com.personal.hydra.domain.model.ConfigMode
+import com.personal.hydra.domain.model.HeatmapStyle
 import com.personal.hydra.domain.model.HydraConfig
 import com.personal.hydra.domain.model.PausePeriod
 import com.personal.hydra.domain.model.ThemeMode
@@ -26,6 +27,9 @@ interface SettingsRepository {
     suspend fun setNightCutoff(min: Int)
     suspend fun setMorningShare(pct: Int)
     suspend fun setPauses(pauses: List<PausePeriod>)
+
+    /** Mutes reminders for [dayKey] (ISO date); null clears the mute. */
+    suspend fun setRemindersMutedDay(dayKey: String?)
     suspend fun setReminderInterval(min: Int)
     suspend fun setSnooze(min: Int)
     suspend fun setHourlyCap(ml: Int)
@@ -37,8 +41,8 @@ interface SettingsRepository {
     suspend fun setLanguage(l: AppLanguage)
     suspend fun setPresets(presetsMl: List<Int>)
     suspend fun setBackupMode(m: BackupMode)
-    suspend fun setInferredSeasonCache(seasonName: String)
+    suspend fun setCaffeineWarning(enabled: Boolean)
+    suspend fun setHeatmapStyle(style: HeatmapStyle)
     suspend fun markOnboardingDone()
-    suspend fun setOnboardingStep(step: Int)
     suspend fun replaceConfig(c: HydraConfig)
 }

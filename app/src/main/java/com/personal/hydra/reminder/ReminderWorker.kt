@@ -26,10 +26,9 @@ class ReminderWorker(
 
         val consumed = container.hydrationRepository.consumedToday()
         val sinceLast = container.hydrationRepository.minutesSinceLastIntake()
-        // The hydration day (wake-hour boundary), NOT the calendar date: pauses are
-        // stored as day keys and consumed/sinceLast are already day-key scoped, so
-        // between midnight and wake the calendar date would be one day ahead.
-        val today = LocalDate.parse(DayKeyResolver().todayKey(config.settings.wakeTime))
+        // The hydration day = the calendar day; the wake/sleep times only bound the
+        // reminder window inside ReminderEvaluator.
+        val today = LocalDate.parse(DayKeyResolver().todayKey())
         val decision = ReminderEvaluator.evaluate(config, consumed, sinceLast, LocalTime.now(), today)
 
         // Post when due; otherwise clear any stale notification (goal reached, night

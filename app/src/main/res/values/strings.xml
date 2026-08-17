@@ -65,9 +65,15 @@
     <string name="backup_json">Manual JSON export/import</string>
     <string name="export_data">Export data</string>
     <string name="import_data">Import data</string>
-    <string name="backup_error_open_dest">Couldn\'t open the destination file</string>
-    <string name="backup_error_open_src">Couldn\'t open the source file</string>
-    <string name="backup_error_newer_version">This backup is from a newer version of the app</string>
+    <string name="backup_error_open_dest">couldn\'t open the destination file</string>
+    <string name="backup_error_open_src">couldn\'t open the source file</string>
+    <string name="backup_error_newer_version">this backup is from a newer version of the app</string>
+    <string name="backup_error_malformed">that file is not a valid Hydra backup</string>
+    <string name="backup_error_unknown">unexpected error</string>
+    <string name="backup_export_ok">Exported: %1$d days and %2$d entries</string>
+    <string name="backup_import_ok">Imported: %1$d days and %2$d entries</string>
+    <string name="backup_export_failed">Couldn\'t export: %1$s</string>
+    <string name="backup_import_failed">Couldn\'t import: %1$s</string>
     <string name="advanced_mode">Advanced mode</string>
     <string name="advanced_settings">Advanced settings</string>
     <string name="about">About</string>
@@ -142,7 +148,6 @@
     <string name="stat_avg_completion">Avg. completion</string>
     <string name="days_unit">%1$d d</string>
     <string name="achievements">Achievements</string>
-    <string name="last_30_days">Last 30 days</string>
     <string name="no_history">No history yet. Log some water!</string>
     <string name="goal_reached_celebration">Goal reached! 🎉 Great job staying hydrated.</string>
     <string name="ach_first_day">First day</string>
@@ -187,4 +192,78 @@
     <string name="balance_value">%1$d%% / %2$d%%</string>
     <string name="balance_hint">Front-loads your goal into the morning half of your day so less is left for the evening — fewer night-time bathroom trips means better sleep.</string>
     <string name="about_balance">The morning/afternoon balance is a guide, not medical advice: what matters most for your health is the daily total. If you have kidney or heart disease, take diuretics or are pregnant, ask your doctor before changing your fluid schedule.</string>
+
+    <!-- v4: mute reminders for today -->
+    <string name="mute_today">Mute reminders for today</string>
+    <string name="unmute_today">Turn reminders back on</string>
+    <string name="mute_today_msg">Reminders muted for the rest of today. They come back on their own tomorrow.</string>
+    <string name="unmute_today_msg">Reminders are back on.</string>
+    <string name="mute_today_active">Reminders muted until tomorrow</string>
+
+    <!-- v4: day boundary -->
+    <string name="schedule_hint">Wake and sleep times only decide when reminders may be sent. Your day always starts at 00:00, so water drunk after midnight counts for the new day.</string>
+    <string name="about_day_boundary">The day changes at midnight. Wake and sleep times only bound the hours when reminders may be sent.</string>
+
+    <!-- v4: chart date range -->
+    <string name="range_hint">Drag across the chart to pick a range, or tap a start day and then an end day.</string>
+    <string name="range_label">%1$s – %2$s</string>
+    <string name="range_pick_end">Start: %1$s — now tap the end day</string>
+    <string name="period_window">%1$s – %2$s · %3$d days</string>
+    <string name="range_clear">Show 30 days</string>
+    <string name="range_cancel">Cancel</string>
+    <string name="range_summary">%1$s total · %2$s per day · %3$d%% of goal</string>
+    <string name="range_days_logged">%1$d of %2$d days logged · %3$d completed</string>
+
+    <!-- v4: hourly distribution -->
+    <string name="hourly_title">When you drink</string>
+    <string name="hourly_hint">Where your water lands during the day, added up over the selected period.</string>
+    <string name="hourly_peak">Most water between %1$02d:00 and %2$02d:00 (%3$d%% of the total)</string>
+    <string name="hourly_balance_actual">Actual balance %1$d%% / %2$d%% · target %3$d%% / %4$d%%</string>
+    <string name="hourly_empty">Log some water and your daily pattern will show up here.</string>
+    <string name="period_7d">7 days</string>
+    <string name="period_30d">30 days</string>
+    <string name="period_range">Selection</string>
+
+    <!-- v5: pace curve, weekday pattern, heat-map, completion time -->
+    <string name="pace_title">Today\'s pace</string>
+    <string name="pace_ahead">%1$s ahead of plan</string>
+    <string name="pace_behind">%1$s behind plan</string>
+    <string name="pace_legend">Solid line: what you drank. Dashed line: the plan. The shaded band is your drinking window.</string>
+    <string name="rolling_avg_value">7-day average: %1$d%% — the orange line tracks it day by day.</string>
+    <string name="rolling_avg_pending">The 7-day average line appears once you have 7 days in a row logged.</string>
+    <string name="heatmap_less">Less</string>
+    <string name="heatmap_more">More</string>
+    <string name="weekday_title">By day of the week</string>
+    <string name="weekday_worst">Your weakest day is %1$s (%2$d%% average)</string>
+    <string name="weekday_hint">Average completion per weekday over the selected period.</string>
+    <string name="heatmap_title">Last 12 weeks</string>
+    <string name="heatmap_hint">One square per day, Monday at the top. The stronger the colour, the closer you got to your goal. A neutral grey square is a day with no record.</string>
+    <string name="reach_title">When you hit your goal</string>
+    <string name="reach_median">Usually around %1$02d:%2$02d · reached on %3$d of %4$d days</string>
+    <string name="reach_none">You haven\'t reached your goal in this period yet.</string>
+    <string name="reach_hint">One dot per day. Finishing earlier leaves less water for the evening and helps you sleep through the night.</string>
+
+    <!-- v7: page-wide period on the history screen -->
+    <string name="section_period">Period</string>
+    <string name="period_hint">Every chart and the list below are computed over this period.</string>
+    <string name="period_90d">90 days</string>
+    <string name="period_badge">· %1$s</string>
+    <string name="chart_days_title">Last %1$d days</string>
+    <string name="chart_range_title">Picked range</string>
+    <string name="heatmap_fixed">Fixed long view: always 12 weeks, it does not follow the period.</string>
+
+    <!-- v10: caffeine notice, heat-map bars, per-day pace -->
+    <string name="caffeine_notice">You sleep at %1$s: from %2$s ease off coffee, tea and mate. %3$d h is a minimum — the earlier, the better.</string>
+    <string name="caffeine_setting">Caffeine notice</string>
+    <string name="caffeine_setting_hint">Shows a reminder on Home, %1$d h before your bedtime, to ease off coffee, tea and mate. The %1$d h is a floor, not an exact line: it depends on how much caffeine you had (a light tea has room to spare, a long mate session needs more margin). Informational only: it does not affect your goal or streaks.</string>
+    <string name="heatmap_style">View</string>
+    <string name="heatmap_style_grid">Calendar</string>
+    <string name="heatmap_style_bars">Bars</string>
+    <string name="heatmap_bars_hint">One bar per week: that week\'s average completion. Days with no record count as zero, so a week you forgot doesn\'t look perfect.</string>
+    <string name="day_pace_title">Pace of a day</string>
+    <string name="day_pace_today">Today</string>
+    <string name="day_pace_prev">Previous day</string>
+    <string name="day_pace_next">Next day</string>
+    <string name="day_pace_hint">Pick any logged day to see how you spread your water. Independent of the period above.</string>
+    <string name="day_pace_total">%1$s of %2$s · %3$d%% of goal</string>
 </resources>

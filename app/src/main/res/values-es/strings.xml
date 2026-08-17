@@ -65,9 +65,15 @@
     <string name="backup_json">Exportar/importar JSON</string>
     <string name="export_data">Exportar datos</string>
     <string name="import_data">Importar datos</string>
-    <string name="backup_error_open_dest">No se pudo abrir el archivo de destino</string>
-    <string name="backup_error_open_src">No se pudo abrir el archivo de origen</string>
-    <string name="backup_error_newer_version">El backup es de una versión más nueva que la app</string>
+    <string name="backup_error_open_dest">no se pudo abrir el archivo de destino</string>
+    <string name="backup_error_open_src">no se pudo abrir el archivo de origen</string>
+    <string name="backup_error_newer_version">el backup es de una versión más nueva que la app</string>
+    <string name="backup_error_malformed">el archivo no es un backup de Hydra válido</string>
+    <string name="backup_error_unknown">error inesperado</string>
+    <string name="backup_export_ok">Exportado: %1$d días y %2$d registros</string>
+    <string name="backup_import_ok">Importado: %1$d días y %2$d registros</string>
+    <string name="backup_export_failed">No se pudo exportar: %1$s</string>
+    <string name="backup_import_failed">No se pudo importar: %1$s</string>
     <string name="advanced_mode">Modo avanzado</string>
     <string name="advanced_settings">Ajustes avanzados</string>
     <string name="about">Acerca de</string>
@@ -142,7 +148,6 @@
     <string name="stat_avg_completion">Cumplimiento prom.</string>
     <string name="days_unit">%1$d d</string>
     <string name="achievements">Logros</string>
-    <string name="last_30_days">Últimos 30 días</string>
     <string name="no_history">Sin historial todavía. ¡Registrá agua!</string>
     <string name="goal_reached_celebration">¡Meta cumplida! 🎉 Buen trabajo manteniéndote hidratado.</string>
     <string name="ach_first_day">Primer día</string>
@@ -187,4 +192,78 @@
     <string name="balance_value">%1$d%% / %2$d%%</string>
     <string name="balance_hint">Adelanta tu objetivo a la primera mitad del día para que quede menos para la tarde: menos idas al baño de madrugada y mejor sueño.</string>
     <string name="about_balance">El balance mañana/tarde es orientativo, no un consejo médico: lo que más importa para tu salud es el total diario. Si tenés enfermedad renal o cardíaca, tomás diuréticos o estás embarazada, consultá a tu médico antes de cambiar tu horario de líquidos.</string>
+
+    <!-- v4: silenciar avisos por hoy -->
+    <string name="mute_today">Silenciar avisos por hoy</string>
+    <string name="unmute_today">Reactivar los avisos</string>
+    <string name="mute_today_msg">Avisos silenciados por el resto del día. Mañana vuelven solos.</string>
+    <string name="unmute_today_msg">Avisos reactivados.</string>
+    <string name="mute_today_active">Avisos silenciados hasta mañana</string>
+
+    <!-- v4: cambio de día -->
+    <string name="schedule_hint">Los horarios de despertar y dormir solo definen cuándo se pueden enviar avisos. Tu día siempre empieza a las 00:00, así que el agua que tomes después de medianoche cuenta para el día nuevo.</string>
+    <string name="about_day_boundary">El día cambia a la medianoche. Los horarios de despertar y dormir solo delimitan las horas en que se pueden enviar avisos.</string>
+
+    <!-- v4: rango de fechas en el gráfico -->
+    <string name="range_hint">Arrastrá sobre el gráfico para elegir un rango, o tocá el día inicial y después el final.</string>
+    <string name="range_label">%1$s – %2$s</string>
+    <string name="range_pick_end">Inicio: %1$s — ahora tocá el día final</string>
+    <string name="period_window">%1$s – %2$s · %3$d días</string>
+    <string name="range_clear">Ver 30 días</string>
+    <string name="range_cancel">Cancelar</string>
+    <string name="range_summary">%1$s en total · %2$s por día · %3$d%% de la meta</string>
+    <string name="range_days_logged">%1$d de %2$d días con registro · %3$d cumplidos</string>
+
+    <!-- v4: distribución horaria -->
+    <string name="hourly_title">Cuándo tomás agua</string>
+    <string name="hourly_hint">Cómo se reparte tu ingesta a lo largo del día, sumada en el período elegido.</string>
+    <string name="hourly_peak">Mayor ingesta entre las %1$02d:00 y las %2$02d:00 (%3$d%% del total)</string>
+    <string name="hourly_balance_actual">Balance real %1$d%% / %2$d%% · objetivo %3$d%% / %4$d%%</string>
+    <string name="hourly_empty">Registrá agua y acá va a aparecer tu patrón diario.</string>
+    <string name="period_7d">7 días</string>
+    <string name="period_30d">30 días</string>
+    <string name="period_range">Selección</string>
+
+    <!-- v5: curva de ritmo, patrón semanal, heat-map, hora de cumplimiento -->
+    <string name="pace_title">Ritmo de hoy</string>
+    <string name="pace_ahead">%1$s adelantado</string>
+    <string name="pace_behind">%1$s atrasado</string>
+    <string name="pace_legend">Línea llena: lo que tomaste. Línea punteada: el plan. La franja sombreada es tu ventana de ingesta.</string>
+    <string name="rolling_avg_value">Promedio de 7 días: %1$d%% — la línea naranja lo sigue día a día.</string>
+    <string name="rolling_avg_pending">La línea de promedio de 7 días aparece cuando tengas 7 días seguidos con registro.</string>
+    <string name="heatmap_less">Menos</string>
+    <string name="heatmap_more">Más</string>
+    <string name="weekday_title">Por día de la semana</string>
+    <string name="weekday_worst">Tu día más flojo es %1$s (%2$d%% promedio)</string>
+    <string name="weekday_hint">Cumplimiento promedio por día de la semana en el período elegido.</string>
+    <string name="heatmap_title">Últimas 12 semanas</string>
+    <string name="heatmap_hint">Un cuadrito por día, lunes arriba. Cuanto más fuerte el color, más cerca estuviste de la meta. Un cuadrito gris neutro es un día sin registro.</string>
+    <string name="reach_title">Cuándo llegás a la meta</string>
+    <string name="reach_median">Normalmente cerca de las %1$02d:%2$02d · cumplida %3$d de %4$d días</string>
+    <string name="reach_none">Todavía no llegaste a la meta en este período.</string>
+    <string name="reach_hint">Un punto por día. Terminar más temprano deja menos agua para la noche y ayuda a dormir de corrido.</string>
+
+    <!-- v7: período global de la pantalla de historial -->
+    <string name="section_period">Período</string>
+    <string name="period_hint">Todos los gráficos y la lista de abajo se calculan con este período.</string>
+    <string name="period_90d">90 días</string>
+    <string name="period_badge">· %1$s</string>
+    <string name="chart_days_title">Últimos %1$d días</string>
+    <string name="chart_range_title">Rango elegido</string>
+    <string name="heatmap_fixed">Vista larga fija: siempre 12 semanas, no sigue al período.</string>
+
+    <!-- v10: aviso de cafeína, heat-map en barras, ritmo por día -->
+    <string name="caffeine_notice">Dormís a las %1$s: desde las %2$s conviene cortar con café, té o mate. Son %3$d h como mínimo — cuanto antes, mejor.</string>
+    <string name="caffeine_setting">Aviso de cafeína</string>
+    <string name="caffeine_setting_hint">Muestra en Inicio, %1$d h antes de tu hora de dormir, un recordatorio de cortar con el café, el té o el mate. Las %1$d h son un piso, no una línea exacta: dependen de cuánta cafeína tomes (un té liviano queda holgado, una ronda larga de mate necesita más margen). Es solo informativo: no afecta la meta ni las rachas.</string>
+    <string name="heatmap_style">Vista</string>
+    <string name="heatmap_style_grid">Calendario</string>
+    <string name="heatmap_style_bars">Barras</string>
+    <string name="heatmap_bars_hint">Una barra por semana: el promedio de cumplimiento de esa semana. Los días sin registro cuentan como cero, así una semana que te olvidaste no parece perfecta.</string>
+    <string name="day_pace_title">Ritmo de un día</string>
+    <string name="day_pace_today">Hoy</string>
+    <string name="day_pace_prev">Día anterior</string>
+    <string name="day_pace_next">Día siguiente</string>
+    <string name="day_pace_hint">Elegí cualquier día con registro para ver cómo repartiste el agua. No depende del período de arriba.</string>
+    <string name="day_pace_total">%1$s de %2$s · %3$d%% de la meta</string>
 </resources>

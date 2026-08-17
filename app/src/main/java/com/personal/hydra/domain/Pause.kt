@@ -52,3 +52,18 @@ object PauseManager {
         }
     }
 }
+
+/**
+ * "Mute reminders for the rest of today" — the one-tap switch in the Home top
+ * bar. Deliberately NOT a [PauseManager] pause: it only silences notifications,
+ * never touches streaks or logging, and expires by itself when the calendar day
+ * changes (the stored key simply stops matching today). Pure; `today` injected.
+ */
+object MuteManager {
+
+    fun isMuted(mutedDay: String?, today: LocalDate): Boolean =
+        mutedDay != null && runCatching { LocalDate.parse(mutedDay) == today }.getOrDefault(false)
+
+    /** Value to persist when the user mutes; null clears the mute. */
+    fun muteKey(today: LocalDate): String = today.toString()
+}

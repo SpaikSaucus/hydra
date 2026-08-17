@@ -16,6 +16,9 @@ import java.time.LocalTime
 @Serializable enum class BackupMode { LOCAL_ONLY, ANDROID_AUTO, MANUAL_JSON }
 @Serializable enum class IntakeSource { MANUAL, PRESET, NOTIFICATION }
 
+/** How the 12-week card is drawn. GRID = calendar squares, BARS = one bar per week. */
+@Serializable enum class HeatmapStyle { GRID, BARS }
+
 /** Valid ranges and canonical defaults shared by domain + settings + UI. */
 object Ranges {
     const val WEIGHT_MIN = 30.0
@@ -24,8 +27,8 @@ object Ranges {
     const val FACTOR_MAX = 40
     const val FACTOR_NORMAL = 33
     const val FACTOR_HEAT = 40
-    const val ADJ_MIN = -15
-    const val ADJ_MAX = 15
+    const val ADJ_MIN = -20
+    const val ADJ_MAX = 20
     const val INTERVAL_MIN = 30
     const val INTERVAL_MAX = 240
     const val CUTOFF_MIN = 0
@@ -119,7 +122,7 @@ data class ReminderDecision(
     val isBehind: Boolean,
     val overflowWarning: Boolean,
 ) {
-    enum class Reason { DUE, BEHIND, ALREADY_DONE, NIGHT_CUTOFF, NOT_YET, PAUSED }
+    enum class Reason { DUE, BEHIND, ALREADY_DONE, NIGHT_CUTOFF, NOT_YET, PAUSED, MUTED }
 }
 
 // --------------------------- Season inference --------------------------------
